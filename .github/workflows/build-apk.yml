@@ -12,7 +12,6 @@ permissions:
 
 jobs:
   build:
-    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
@@ -37,14 +36,26 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Find Android project
+        shell: bash
+        run: |
+          FILE=$(find . -name settings.gradle -o -name settings.gradle.kts | head -n 1)
+          if [ -z "$FILE" ]; then
+            echo "ERROR: No settings.gradle found"
+            find . -maxdepth 4 -type f | head -100
+            exit 1
+          fi
+          DIR=$(dirname "$FILE")
+          echo "PROJECT_DIR=$DIR" >> "$GITHUB_ENV"
+          echo "Found project: $DIR"
+
       - name: Build APK
-        working-directory: RISE365_Android_Project
-        run: gradle --no-daemon assembleDebug
+        run: gradle --no-daemon -p "$PROJECT_DIR" assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: RISE365-Android-debug
-          path: RISE365_Android_Project/app/build/outputs/apk/debug/app-debug.apk
+          path: '**/app/build/outputs/apk/debug/app-debug.apk'
           if-no-files-found: error
           
