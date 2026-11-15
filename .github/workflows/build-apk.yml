@@ -15,20 +15,24 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android licenses
+        run: yes | sdkmanager --licenses
 
-      - name: Install Android SDK packages
+      - name: Install Android SDK
         run: |
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
@@ -37,8 +41,8 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build RISE 365 APK
-        run: gradle --no-daemon --stacktrace assembleDebug
+      - name: Build APK
+        run: gradle --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
